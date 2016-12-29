@@ -9,6 +9,8 @@ case object Alive extends Cell
 
 case class CellCoord(row :Int, col :Int) {
   def +(off :CellOffset) :CellCoord = CellCoord(row+off.dr, col+off.dc)
+
+  override def hashCode(): Int =  (row+col) % 1000
 }
 
 case class CellOffset(dr :Int, dc :Int)
