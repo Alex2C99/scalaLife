@@ -10,6 +10,10 @@ case class World(alives :List[CellCoord]) {
     CellOffset(1,0)
     CellOffset(0,-1)
     CellOffset(0,1)
+    CellOffset(-1,-1)
+    CellOffset(1,-1)
+    CellOffset(1,1)
+    CellOffset(-1,1)
   }
 
   def aliveNeigbours(row :Int, col :Int) :Int = neigbours.count(off => cellState(CellCoord(row,col)+off)==Alive)
@@ -21,7 +25,7 @@ case class World(alives :List[CellCoord]) {
     val cnt = aliveNeigbours(row, col)
     cellState(row, col) match {
       case Alive => if (cnt<2 || cnt>3) Dead else Alive
-      case Dead => if (cnt<2) Dead else Alive
+      case Dead => if (cnt==3) Alive else Dead
     }
   }
 
