@@ -1,14 +1,20 @@
+/**
+  * Created by А.Скрипкин on 29.12.2016.
+  */
 package ConwayLife
 
 import scala.collection.immutable.HashSet
 
+case class CellCoord(row :Int, col :Int) {
+  def +(off :CellOffset) :CellCoord = CellCoord(row+off.dr, col+off.dc)
+  override def hashCode(): Int =  (row+col) % 1000
+}
 
-/**
-  * Created by А.Скрипкин on 29.12.2016.
-  */
+case class CellOffset(dr :Int, dc :Int)
+
 case class World(alives :HashSet[CellCoord]) {
 
-  val neighbors =  List (
+  private val neighbors =  List (
     CellOffset(-1,0),
     CellOffset(1,0),
     CellOffset(0,-1),
@@ -19,17 +25,13 @@ case class World(alives :HashSet[CellCoord]) {
     CellOffset(-1,1)
   )
 
-  def aliveNeighbors(row :Int, col :Int) :Int = neighbors.count(off => cellState(CellCoord(row,col)+off)==Alive)
+  def aliveNeighbors(crd :CellCoord) :Int = neighbors.count(off => cellState(crd + off))
 
-  def cellState(row :Int, col :Int) :Cell = if (alives contains CellCoord(row, col)) Alive else Dead
-  def cellState(crd :CellCoord) :Cell = cellState(crd.row, crd.col)
+  def cellState(crd :CellCoord) :Boolean = alives contains crd
 
-  def newCellState(row :Int, col :Int) :Cell = {
-    val cnt = aliveNeighbors(row, col)
-    cellState(row, col) match {
-      case Alive => if (cnt<2 || cnt>3) Dead else Alive
-      case Dead => if (cnt==3) Alive else Dead
-    }
+  def newCellState(crd :CellCoord) : Boolean = {
+    val cnt = aliveNeighbors(crd)
+    if(cellState(crd)) cnt>=2 && cnt<=3 else cnt==3
   }
 
   def minRow :Int = if (alives.isEmpty) 0 else alives.map(_.row).min
@@ -37,15 +39,14 @@ case class World(alives :HashSet[CellCoord]) {
   def minCol :Int = if (alives.isEmpty) 0 else alives.map(_.col).min
   def maxCol :Int = if (alives.isEmpty) 0 else alives.map(_.col).max
 
-  def topLeft :CellCoord = CellCoord(minRow-1, minCol-1)
-  def bottomRight :CellCoord = CellCoord(maxRow+1, maxCol+1)
-
-  def step() :World = World {
-    HashSet(
-      (for {
+  private def cellList :List[CellCoord] = {
+    (for {
       row <- minRow-1 to maxRow+2
       col <- minCol-1 to maxCol+2
-      if Alive == newCellState(row, col)
-    } yield CellCoord(row, col)).toList:_*)
+    } yield CellCoord(row, col)).toList
+  }
+
+  def step() :World = World {
+    HashSet(cellList.filter(newCellState):_*)
   }
 }
