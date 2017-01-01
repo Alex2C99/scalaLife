@@ -7,31 +7,23 @@ import scala.collection.immutable.HashSet
 
 case class CellCoord(row :Int, col :Int) {
   def +(off :CellOffset) :CellCoord = CellCoord(row+off.dr, col+off.dc)
-  override def hashCode(): Int =  (row+col) % 1000
+  override def hashCode(): Int =  (row+col) % 100
 }
 
 case class CellOffset(dr :Int, dc :Int)
 
 case class World(alives :HashSet[CellCoord]) {
 
-  private val neighbors =  List (
-    CellOffset(-1,0),
-    CellOffset(1,0),
-    CellOffset(0,-1),
-    CellOffset(0,1),
-    CellOffset(-1,-1),
-    CellOffset(1,-1),
-    CellOffset(1,1),
-    CellOffset(-1,1)
-  )
+  private val neighbors =  List (CellOffset(-1,0), CellOffset(1,0), CellOffset(0,-1), CellOffset(0,1),
+                                 CellOffset(-1,-1),CellOffset(1,-1),CellOffset(1,1),  CellOffset(-1,1))
 
-  def aliveNeighbors(crd :CellCoord) :Int = neighbors.count(off => cellState(crd + off))
+  def aliveNeighborsCount(crd :CellCoord) :Int = neighbors.count(off => isAlive(crd + off))
 
-  def cellState(crd :CellCoord) :Boolean = alives contains crd
+  def isAlive(crd :CellCoord) :Boolean = alives contains crd
 
-  def newCellState(crd :CellCoord) : Boolean = {
-    val cnt = aliveNeighbors(crd)
-    if(cellState(crd)) cnt>=2 && cnt<=3 else cnt==3
+  def willLive(crd :CellCoord) :Boolean = {
+    val cnt = aliveNeighborsCount(crd)
+    if(isAlive(crd)) cnt>=2 && cnt<=3 else cnt==3
   }
 
   def minRow :Int = if (alives.isEmpty) 0 else alives.map(_.row).min
@@ -47,6 +39,6 @@ case class World(alives :HashSet[CellCoord]) {
   }
 
   def step() :World = World {
-    HashSet(cellList.filter(newCellState):_*)
+    HashSet(cellList.filter(willLive):_*)
   }
 }
